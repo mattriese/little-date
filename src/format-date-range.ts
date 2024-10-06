@@ -1,6 +1,4 @@
 import {
-  addDays,
-  addHours,
   endOfMonth,
   endOfQuarter,
   endOfYear,
@@ -124,7 +122,7 @@ export const formatDateRange = (
   const formatDateWithoutYear = (date: Date): string => {
     if (isToday(date)) return 'Today';
     if (isTomorrow(date)) return 'Tomorrow';
-    return format(date, 'LLL d');
+    return format(date, 'EEE LLL d');
   };
 
   // Range across years
@@ -138,36 +136,11 @@ export const formatDateRange = (
     } ${separator} ${toFormatted}${includeTime ? `, ${formatTime(to)}` : ''}`;
   }
 
-  // Range across months
-  // Example: Jan 1 - Feb 12[, 2023]
-  if (!sameMonth) {
-    return `${formatDateWithoutYear(from)}${
-      includeTime ? `, ${formatTime(from)}` : ''
-    } ${separator} ${formatDateWithoutYear(to)}${
-      includeTime ? `, ${formatTime(to)}` : ''
-    }${yearSuffix}`;
-  }
-
-  // Range across days or within a day
-  if (sameDay) {
-    return `${formatDateWithoutYear(from)}${
-      includeTime ? `, ${formatTime(from)} ${separator} ${formatTime(to)}` : ''
-    }${yearSuffix}`;
-  } else {
-    return `${formatDateWithoutYear(from)}${
-      includeTime ? `, ${formatTime(from)}` : ''
-    } ${separator} ${formatDateWithoutYear(to)}${
-      includeTime ? `, ${formatTime(to)}` : ''
-    }${yearSuffix}`;
-  }
+  // Range across months or days within the same year
+  // Example: Today - Mon Oct 7[, 2023]
+  return `${formatDateWithoutYear(from)}${
+    includeTime ? `, ${formatTime(from)}` : ''
+  } ${separator} ${formatDateWithoutYear(to)}${
+    includeTime ? `, ${formatTime(to)}` : ''
+  }${yearSuffix}`;
 };
-
-/**
- * from ISO:  2024-10-10T07:00:00.000Z
-formatTimePeriodsForCommitmentCard.tsx:24 to ISO:  2024-10-10T19:00:00.000Z
-formatTimePeriodsForCommitmentCard.tsx:26 formatted:  Oct 10 - 12pm
- */
-
-console.log(formatDateRange(addHours(new Date(), 26), addDays(new Date(), 50)));
-
-console.log(formatDateRange(addHours(new Date(), 1), addDays(new Date(), 2)));

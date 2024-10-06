@@ -1,4 +1,5 @@
 import {
+  addDays,
   addHours,
   endOfMonth,
   endOfQuarter,
@@ -9,6 +10,8 @@ import {
   isSameMinute,
   isSameMonth,
   isSameYear,
+  isToday,
+  isTomorrow,
   startOfMonth,
   startOfQuarter,
   startOfYear,
@@ -68,18 +71,22 @@ export const formatDateRange = (
   const sameMonth = isSameMonth(from, to);
   const sameDay = isSameDay(from, to);
   const thisYear = isSameYear(from, today);
-  const thisDay = isSameDay(from, today);
 
   const yearSuffix = thisYear ? '' : `, ${format(to, 'yyyy')}`;
 
   const formatTime = createFormatTime(locale);
 
-  const startTimeSuffix = includeTime ? `, ${formatTime(from)}` : '';
+  const formatDate = (date: Date): string => {
+    if (isToday(date)) return 'Today';
+    if (isTomorrow(date)) return 'Tomorrow';
+    return format(date, 'EEE LLL d');
+  };
 
-  const endTimeSuffix = includeTime ? `, ${formatTime(to)}` : '';
+  const formatDateWithTime = (date: Date): string => {
+    return `${formatDate(date)}${includeTime ? `, ${formatTime(date)}` : ''}`;
+  };
 
   // Check if the range is the entire year
-  // Example: 2023
   if (
     isSameMinute(startOfYear(from), from) &&
     isSameMinute(endOfYear(to), to)
@@ -88,7 +95,6 @@ export const formatDateRange = (
   }
 
   // Check if the range is an entire quarter
-  // Example: Q1 2023
   if (
     isSameMinute(startOfQuarter(from), from) &&
     isSameMinute(endOfQuarter(to), to) &&
@@ -110,67 +116,50 @@ export const formatDateRange = (
     return `${format(from, 'LLL')} ${separator} ${format(to, 'LLL yyyy')}`;
   }
 
+  const formatDateWithYear = (date: Date): string => {
+    if (isToday(date)) return `Today ''${format(date, 'yy')}`;
+    if (isTomorrow(date)) return `Tomorrow ''${format(date, 'yy')}`;
+    return format(date, "LLL d ''yy");
+  };
+
+  const formatDateWithoutYear = (date: Date): string => {
+    if (isToday(date)) return 'Today';
+    if (isTomorrow(date)) return 'Tomorrow';
+    return format(date, 'LLL d');
+  };
+
   // Range across years
   // Example: Jan 1 '23 - Feb 12 '24
   if (!sameYear) {
-    return `${format(
-      from,
-      "LLL d ''yy"
-    )}${startTimeSuffix} ${separator} ${format(
-      to,
-      "LLL d ''yy"
-    )}${endTimeSuffix}`;
+    return `${formatDateWithYear(from)}${
+      includeTime ? `, ${formatTime(from)}` : ''
+    } ${separator} ${formatDateWithYear(to)}${
+      includeTime ? `, ${formatTime(to)}` : ''
+    }`;
   }
 
   // Range across months
   // Example: Jan 1 - Feb 12[, 2023]
   if (!sameMonth) {
-    return `${format(from, 'LLL d')}${startTimeSuffix} ${separator} ${format(
-      to,
-      'LLL d'
-    )}${endTimeSuffix}${yearSuffix}`;
+    return `${formatDateWithoutYear(from)}${
+      includeTime ? `, ${formatTime(from)}` : ''
+    } ${separator} ${formatDateWithoutYear(to)}${
+      includeTime ? `, ${formatTime(to)}` : ''
+    }${yearSuffix}`;
   }
 
-  // Range across days
-  if (!sameDay) {
-    // Check for a time suffix, if so print the month twice
-    // Example: Jan 1, 12:00pm - Jan 2, 1:00pm[, 2023]
-    if (startTimeSuffix || endTimeSuffix) {
-      return `${format(from, 'LLL d')}${startTimeSuffix} ${separator} ${format(
-        to,
-        'LLL d'
-      )}${endTimeSuffix}${yearSuffix}`;
-    }
-
-    // Example: Jan 1 - 12[, 2023]
-    return `${format(from, 'LLL d')} ${separator} ${format(
-      to,
-      'd'
-    )}${yearSuffix}`;
+  // Range across days or within a day
+  if (sameDay) {
+    return `${formatDateWithoutYear(from)}${
+      includeTime ? `, ${formatTime(from)} ${separator} ${formatTime(to)}` : ''
+    }${yearSuffix}`;
+  } else {
+    return `${formatDateWithoutYear(from)}${
+      includeTime ? `, ${formatTime(from)}` : ''
+    } ${separator} ${formatDateWithoutYear(to)}${
+      includeTime ? `, ${formatTime(to)}` : ''
+    }${yearSuffix}`;
   }
-
-  // Same day, different times
-  // Example: Thu Oct 10, 12am - 12pm[, 2024]
-  if (sameDay && (startTimeSuffix || endTimeSuffix)) {
-    // If it's today, include "Today" instead of the date
-    // Example: Today, 12am - 12pm
-    if (thisDay) {
-      return `Today, ${formatTime(from)} ${separator} ${formatTime(to)}`;
-    }
-
-    // Example: Thu Oct 10, 12am - 12pm[, 2024]
-    return `${format(
-      from,
-      'EEE LLL d'
-    )}${startTimeSuffix} ${separator} ${formatTime(to)}${yearSuffix}`;
-  }
-
-  // Full day
-  // Example: Thu Oct 10[, 2024]
-  if (thisDay) {
-    return `Today${yearSuffix}`;
-  }
-  return `${format(from, 'EEE LLL d')}${yearSuffix}`;
 };
 
 /**
@@ -179,4 +168,6 @@ formatTimePeriodsForCommitmentCard.tsx:24 to ISO:  2024-10-10T19:00:00.000Z
 formatTimePeriodsForCommitmentCard.tsx:26 formatted:  Oct 10 - 12pm
  */
 
-console.log(formatDateRange(new Date(), addHours(new Date(), 3)));
+console.log(
+  formatDateRange(addHours(new Date(), 26), addDays(new Date(), 300))
+);

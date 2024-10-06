@@ -144,6 +144,13 @@ export const formatDateRange = (
     } ${separator} ${toFormatted}${includeTime ? `, ${formatTime(to)}` : ''}`;
   }
 
+  // Same day, different times
+  if (sameDay && includeTime) {
+    return `${formatDateWithoutYear(from)}, ${formatTime(
+      from
+    )} ${separator} ${formatTime(to)}${yearSuffix}`;
+  }
+
   // Range across months or days within the same year
   // Example: Today - Mon Oct 7[, 2023]
   return `${formatDateWithoutYear(from)}${
@@ -154,6 +161,6 @@ export const formatDateRange = (
 };
 
 const from = new Date('2024-01-01T08:00:00.000Z');
-const to = new Date('2024-01-02T09:00:00.000Z');
+const to = new Date('2024-01-01T09:00:00.000Z');
 
 console.log(formatDateRange(from, to));

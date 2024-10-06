@@ -1,4 +1,5 @@
 import {
+  addHours,
   endOfMonth,
   endOfQuarter,
   endOfYear,
@@ -151,10 +152,10 @@ export const formatDateRange = (
   // Same day, different times
   // Example: Thu Oct 10, 12am - 12pm[, 2024]
   if (sameDay && (startTimeSuffix || endTimeSuffix)) {
-    // If it's today, don't include the date
-    // Example: 12am - 12pm
+    // If it's today, include "Today" instead of the date
+    // Example: Today, 12am - 12pm
     if (thisDay) {
-      return `${formatTime(from)} ${separator} ${formatTime(to)}`;
+      return `Today, ${formatTime(from)} ${separator} ${formatTime(to)}`;
     }
 
     // Example: Thu Oct 10, 12am - 12pm[, 2024]
@@ -166,6 +167,9 @@ export const formatDateRange = (
 
   // Full day
   // Example: Thu Oct 10[, 2024]
+  if (thisDay) {
+    return `Today${yearSuffix}`;
+  }
   return `${format(from, 'EEE LLL d')}${yearSuffix}`;
 };
 
@@ -175,9 +179,4 @@ formatTimePeriodsForCommitmentCard.tsx:24 to ISO:  2024-10-10T19:00:00.000Z
 formatTimePeriodsForCommitmentCard.tsx:26 formatted:  Oct 10 - 12pm
  */
 
-console.log(
-  formatDateRange(
-    new Date('2024-10-10T07:00:00.000Z'),
-    new Date('2024-10-10T19:00:00.000Z')
-  )
-);
+console.log(formatDateRange(new Date(), addHours(new Date(), 3)));

@@ -1,4 +1,6 @@
 import {
+  differenceInDays,
+  endOfDay,
   endOfMonth,
   endOfQuarter,
   endOfYear,
@@ -10,6 +12,7 @@ import {
   isSameYear,
   isToday,
   isTomorrow,
+  startOfDay,
   startOfMonth,
   startOfQuarter,
   startOfYear,
@@ -70,19 +73,37 @@ export const formatDateRange = (
   const sameDay = isSameDay(from, to);
   const thisYear = isSameYear(from, today);
 
-  const yearSuffix = thisYear ? '' : `, ${format(to, 'yyyy')}`;
+  const yearSuffix = thisYear ? '' : `, ${format(from, 'yyyy')}`;
 
   const formatTime = createFormatTime(locale);
 
-  const formatDate = (date: Date): string => {
+  const formatDateWithYear = (date: Date): string => {
+    if (isToday(date)) return 'Today';
+    if (isTomorrow(date)) return 'Tomorrow';
+    return format(date, "LLL d ''yy");
+  };
+
+  const formatDateWithoutYear = (date: Date): string => {
     if (isToday(date)) return 'Today';
     if (isTomorrow(date)) return 'Tomorrow';
     return format(date, 'EEE LLL d');
   };
 
-  const formatDateWithTime = (date: Date): string => {
-    return `${formatDate(date)}${includeTime ? `, ${formatTime(date)}` : ''}`;
-  };
+  // Check if the range covers exact full days
+  const isFullDays =
+    isSameMinute(from, startOfDay(from)) && isSameMinute(to, startOfDay(to));
+  if (isFullDays) {
+    const days = differenceInDays(to, from);
+    if (days === 1) {
+      return formatDateWithoutYear(from) + yearSuffix;
+    } else if (days > 1) {
+      return `${formatDateWithoutYear(
+        from
+      )} ${separator} ${formatDateWithoutYear(
+        endOfDay(new Date(to.getTime() - 1))
+      )}${yearSuffix}`;
+    }
+  }
 
   // Check if the range is the entire year
   if (
@@ -107,23 +128,10 @@ export const formatDateRange = (
     isSameMinute(endOfMonth(to), to)
   ) {
     if (sameMonth && sameYear) {
-      // Example: January 2023
       return `${format(from, 'LLLL yyyy')}`;
     }
-    // Example: Jan - Feb 2023
     return `${format(from, 'LLL')} ${separator} ${format(to, 'LLL yyyy')}`;
   }
-  const formatDateWithYear = (date: Date): string => {
-    if (isToday(date)) return 'Today';
-    if (isTomorrow(date)) return 'Tomorrow';
-    return format(date, "LLL d ''yy");
-  };
-
-  const formatDateWithoutYear = (date: Date): string => {
-    if (isToday(date)) return 'Today';
-    if (isTomorrow(date)) return 'Tomorrow';
-    return format(date, 'EEE LLL d');
-  };
 
   // Range across years
   // Example: Tomorrow - Feb 12 '24
@@ -144,3 +152,8 @@ export const formatDateRange = (
     includeTime ? `, ${formatTime(to)}` : ''
   }${yearSuffix}`;
 };
+
+const from = new Date('2024-01-01T08:00:00.000Z');
+const to = new Date('2024-01-02T09:00:00.000Z');
+
+console.log(formatDateRange(from, to));

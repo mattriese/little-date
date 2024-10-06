@@ -115,10 +115,9 @@ export const formatDateRange = (
     // Example: Jan - Feb 2023
     return `${format(from, 'LLL')} ${separator} ${format(to, 'LLL yyyy')}`;
   }
-
   const formatDateWithYear = (date: Date): string => {
-    if (isToday(date)) return `Today ''${format(date, 'yy')}`;
-    if (isTomorrow(date)) return `Tomorrow ''${format(date, 'yy')}`;
+    if (isToday(date)) return 'Today';
+    if (isTomorrow(date)) return 'Tomorrow';
     return format(date, "LLL d ''yy");
   };
 
@@ -129,13 +128,14 @@ export const formatDateRange = (
   };
 
   // Range across years
-  // Example: Jan 1 '23 - Feb 12 '24
+  // Example: Tomorrow - Feb 12 '24
   if (!sameYear) {
-    return `${formatDateWithYear(from)}${
+    const fromFormatted = formatDateWithoutYear(from);
+    const toFormatted = formatDateWithYear(to);
+
+    return `${fromFormatted}${
       includeTime ? `, ${formatTime(from)}` : ''
-    } ${separator} ${formatDateWithYear(to)}${
-      includeTime ? `, ${formatTime(to)}` : ''
-    }`;
+    } ${separator} ${toFormatted}${includeTime ? `, ${formatTime(to)}` : ''}`;
   }
 
   // Range across months
@@ -168,6 +168,6 @@ formatTimePeriodsForCommitmentCard.tsx:24 to ISO:  2024-10-10T19:00:00.000Z
 formatTimePeriodsForCommitmentCard.tsx:26 formatted:  Oct 10 - 12pm
  */
 
-console.log(
-  formatDateRange(addHours(new Date(), 26), addDays(new Date(), 300))
-);
+console.log(formatDateRange(addHours(new Date(), 26), addDays(new Date(), 50)));
+
+console.log(formatDateRange(addHours(new Date(), 1), addDays(new Date(), 2)));
